@@ -1,0 +1,46 @@
+Diagnostics report
+============================================================
+
+airbnb_raw_rows: 91307
+airbnb_after_required_filters: 73224
+airbnb_after_price_trim: 72870
+airbnb_unique_zips: 288
+cleaned_zip_rows: 250
+cleaned_zip_unique_zips: 250
+crime_chunks_processed: 6
+crime_total_rows_read: 1004894
+crime_rows_with_valid_zip: 1002248
+crime_aggregated_total_events: 1002248
+crime_total_part1_rows: 601715
+crime_unique_zip_after_aggregation: 150
+zip_all_rows: 250
+zip_all_unique_zips: 250
+merged_rows_before_core_drop: 72870
+merged_rows_after_core_drop: 65350
+merged_unique_zips: 246
+share_crime_rows_retained_after_zip_cleaning: 0.9973668864576761
+
+Regression formula:
+log_price ~ minimum_nights + number_of_reviews + reviews_per_month + calculated_host_listings_count + availability_365 + number_of_reviews_ltm + crime_events_per_capita + Education_Per_Capita + Public_Safety_Per_Capita + amenities_index + C(room_type) + C(month)
+
+R-squared: 0.327583
+Adjusted R-squared: 0.327439
+Observations used in regression: 65,350
+
+Predictors included:
+- minimum_nights
+- number_of_reviews
+- reviews_per_month
+- calculated_host_listings_count
+- availability_365
+- number_of_reviews_ltm
+- crime_events_per_capita
+- Education_Per_Capita
+- Public_Safety_Per_Capita
+- amenities_index
+
+Interpretation notes:
+- ZIP_CODE was used only for merging, never as a numeric predictor.
+- This model uses a reduced set of ZIP-level variables to limit multicollinearity.
+- The crime file should be validated by comparing crime_total_rows_read to crime_aggregated_total_events.
+- If those two are close, nearly all valid crime rows were used after ZIP cleaning.

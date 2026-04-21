@@ -1,0 +1,40 @@
+                            OLS Regression Results                            
+==============================================================================
+Dep. Variable:              log_price   R-squared:                       0.328
+Model:                            OLS   Adj. R-squared:                  0.327
+Method:                 Least Squares   F-statistic:                     2658.
+Date:                Mon, 20 Apr 2026   Prob (F-statistic):               0.00
+Time:                        20:30:56   Log-Likelihood:                -69254.
+No. Observations:               65350   AIC:                         1.385e+05
+Df Residuals:                   65335   BIC:                         1.387e+05
+Df Model:                          14                                         
+Covariance Type:                  HC3                                         
+==================================================================================================
+                                     coef    std err          z      P>|z|      [0.025      0.975]
+--------------------------------------------------------------------------------------------------
+Intercept                          5.5668      0.013    414.381      0.000       5.540       5.593
+C(room_type)[T.Hotel room]         0.2815      0.030      9.350      0.000       0.222       0.341
+C(room_type)[T.Private room]      -1.0646      0.006   -173.162      0.000      -1.077      -1.053
+C(room_type)[T.Shared room]       -1.8752      0.026    -70.834      0.000      -1.927      -1.823
+C(month)[T.September]             -0.0382      0.005     -6.986      0.000      -0.049      -0.028
+minimum_nights                    -0.0033      0.000    -12.488      0.000      -0.004      -0.003
+number_of_reviews                 -0.0004    4.8e-05     -8.316      0.000      -0.000      -0.000
+reviews_per_month                 -0.0493      0.005     -9.696      0.000      -0.059      -0.039
+calculated_host_listings_count    -0.0001   2.28e-05     -4.439      0.000      -0.000   -5.66e-05
+availability_365                   0.0003   2.58e-05     10.573      0.000       0.000       0.000
+number_of_reviews_ltm              0.0015      0.001      2.909      0.004       0.001       0.003
+crime_events_per_capita           -0.4172      0.020    -21.211      0.000      -0.456      -0.379
+Education_Per_Capita            -149.7253     23.513     -6.368      0.000    -195.810    -103.641
+Public_Safety_Per_Capita          82.3011      4.376     18.806      0.000      73.724      90.879
+amenities_index                   -0.0452      0.003    -13.345      0.000      -0.052      -0.039
+==============================================================================
+Omnibus:                    10535.410   Durbin-Watson:                   1.846
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):            19742.618
+Skew:                           1.016   Prob(JB):                         0.00
+Kurtosis:                       4.768   Cond. No.                     2.14e+06
+==============================================================================
+
+Notes:
+[1] Standard Errors are heteroscedasticity robust (HC3)
+[2] The condition number is large, 2.14e+06. This might indicate that there are
+strong multicollinearity or other numerical problems.

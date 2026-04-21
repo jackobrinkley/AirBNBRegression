@@ -1,0 +1,48 @@
+                            OLS Regression Results                            
+==============================================================================
+Dep. Variable:              log_price   R-squared:                       0.406
+Model:                            OLS   Adj. R-squared:                  0.405
+Method:                 Least Squares   F-statistic:                     2491.
+Date:                Mon, 20 Apr 2026   Prob (F-statistic):               0.00
+Time:                        20:50:51   Log-Likelihood:                -65220.
+No. Observations:               65350   AIC:                         1.305e+05
+Df Residuals:                   65327   BIC:                         1.307e+05
+Df Model:                          22                                         
+Covariance Type:                  HC3                                         
+================================================================================================================
+                                                   coef    std err          z      P>|z|      [0.025      0.975]
+----------------------------------------------------------------------------------------------------------------
+Intercept                                     -108.2881      1.938    -55.878      0.000    -112.086    -104.490
+C(room_type)[T.Hotel room]                      -0.0246      0.035     -0.697      0.486      -0.094       0.045
+C(room_type)[T.Private room]                    -1.0279      0.006   -181.087      0.000      -1.039      -1.017
+C(room_type)[T.Shared room]                     -1.8954      0.026    -71.688      0.000      -1.947      -1.844
+C(month)[T.September]                           -0.0320      0.005     -6.228      0.000      -0.042      -0.022
+log_minimum_nights                              -0.1822      0.003    -58.442      0.000      -0.188      -0.176
+log_number_of_reviews                           -0.0180      0.002     -7.668      0.000      -0.023      -0.013
+log_reviews_per_month                           -0.1610      0.009    -17.793      0.000      -0.179      -0.143
+log_host_listings_count                         -0.0037      0.002     -1.783      0.075      -0.008       0.000
+log_availability_365                             0.0142      0.003      4.296      0.000       0.008       0.021
+log_number_of_reviews_ltm                       -0.0478      0.004    -11.648      0.000      -0.056      -0.040
+LATITUDE                                        -0.4734      0.016    -29.318      0.000      -0.505      -0.442
+LONGITUDE                                       -1.1015      0.016    -69.140      0.000      -1.133      -1.070
+crime_events_z                                  -0.0993      0.008    -13.135      0.000      -0.114      -0.085
+C(room_type)[T.Hotel room]:crime_events_z       -0.1254      0.043     -2.895      0.004      -0.210      -0.041
+C(room_type)[T.Private room]:crime_events_z      0.1408      0.021      6.837      0.000       0.100       0.181
+C(room_type)[T.Shared room]:crime_events_z      -0.0668      0.040     -1.687      0.092      -0.144       0.011
+Education_z                                     -0.0349      0.004     -7.832      0.000      -0.044      -0.026
+Public_Safety_z                                  0.0799      0.007     12.178      0.000       0.067       0.093
+amenities_index                                 -0.0571      0.004    -15.400      0.000      -0.064      -0.050
+C(room_type)[T.Hotel room]:amenities_index      -0.0556      0.041     -1.343      0.179      -0.137       0.026
+C(room_type)[T.Private room]:amenities_index     0.0907      0.007     13.324      0.000       0.077       0.104
+C(room_type)[T.Shared room]:amenities_index      0.0307      0.026      1.192      0.233      -0.020       0.081
+==============================================================================
+Omnibus:                     9258.827   Durbin-Watson:                   1.850
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):            16891.841
+Skew:                           0.918   Prob(JB):                         0.00
+Kurtosis:                       4.684   Cond. No.                     9.06e+04
+==============================================================================
+
+Notes:
+[1] Standard Errors are heteroscedasticity robust (HC3)
+[2] The condition number is large, 9.06e+04. This might indicate that there are
+strong multicollinearity or other numerical problems.

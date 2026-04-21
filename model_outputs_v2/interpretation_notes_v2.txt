@@ -1,0 +1,23 @@
+Interpretation notes v2
+============================================================
+
+Dependent variable: log_price
+Small coefficients can be read approximately as percent changes.
+
+R-squared: 0.3276
+
+Significant predictors (p < 0.05):
+- Education_Per_Capita: coef=-149.725323, approx_pct_effect=-100.00%, p=1.91796e-10
+- Public_Safety_Per_Capita: coef=82.301140, approx_pct_effect=55326233859553186861032832459866112000.00%, p=6.75899e-79
+- C(room_type)[T.Shared room]: coef=-1.875153, approx_pct_effect=-84.67%, p=0
+- C(room_type)[T.Private room]: coef=-1.064607, approx_pct_effect=-65.51%, p=0
+- crime_events_per_capita: coef=-0.417243, approx_pct_effect=-34.11%, p=7.58035e-100
+- C(room_type)[T.Hotel room]: coef=0.281495, approx_pct_effect=32.51%, p=8.7922e-21
+- reviews_per_month: coef=-0.049304, approx_pct_effect=-4.81%, p=3.14415e-22
+- amenities_index: coef=-0.045235, approx_pct_effect=-4.42%, p=1.26868e-40
+- C(month)[T.September]: coef=-0.038234, approx_pct_effect=-3.75%, p=2.81911e-12
+- minimum_nights: coef=-0.003347, approx_pct_effect=-0.33%, p=8.70369e-36
+- number_of_reviews_ltm: coef=0.001548, approx_pct_effect=0.15%, p=0.00362431
+- number_of_reviews: coef=-0.000399, approx_pct_effect=-0.04%, p=9.09415e-17
+- availability_365: coef=0.000273, approx_pct_effect=0.03%, p=3.99068e-26
+- calculated_host_listings_count: coef=-0.000101, approx_pct_effect=-0.01%, p=9.01976e-06

@@ -1,0 +1,35 @@
+Regression interpretation notes
+============================================================
+
+Dependent variable: log_price
+That means small coefficients can be read approximately as percentage effects.
+
+Important methodological note:
+ZIP_CODE was used only to merge listing rows to area-level variables.
+ZIP_CODE was NOT entered as a numeric regression predictor.
+That is the correct way to use ZIP here.
+
+R-squared: 0.3766
+Adjusted R-squared: 0.3764
+
+Top statistically significant predictors (p < 0.05):
+- Public_Safety_Per_Capita: coef=236.166030, p=1.35699e-24
+- crime_events_per_capita: coef=-7.398379, p=1.34863e-39
+- property_crime_per_capita: coef=5.683509, p=1.20977e-16
+- violent_crime_per_capita: coef=4.122409, p=1.99878e-09
+- part1_events_per_capita: coef=3.448652, p=9.25369e-28
+- C(room_type)[T.Shared room]: coef=-1.828357, p=0
+- C(room_type)[T.Private room]: coef=-0.981378, p=0
+- crime_index: coef=-0.302100, p=4.6983e-16
+- amenities_index: coef=0.229682, p=2.32481e-18
+- C(room_type)[T.Hotel room]: coef=0.217956, p=4.0407e-13
+- Count_Fire_Stations: coef=-0.112877, p=1.26975e-34
+- Count_Police_Stations: coef=-0.112877, p=1.26975e-34
+- education_index: coef=-0.092786, p=3.75396e-24
+- reviews_per_month: coef=-0.046340, p=9.0684e-23
+- Crime_Per_Capita: coef=0.045934, p=1.9746e-08
+- C(month)[T.September]: coef=-0.035151, p=2.01031e-12
+- Count_Public_Safety: coef=0.033939, p=6.74452e-12
+- Count_Corrective_Facility: coef=-0.028650, p=1.57198e-06
+- Count_Education_Facility: coef=-0.007055, p=2.01774e-05
+- minimum_nights: coef=-0.002995, p=6.76828e-37

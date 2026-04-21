@@ -1,0 +1,52 @@
+                            OLS Regression Results                            
+==============================================================================
+Dep. Variable:              log_price   R-squared:                       0.377
+Model:                            OLS   Adj. R-squared:                  0.376
+Method:                 Least Squares   F-statistic:                 3.866e+04
+Date:                Mon, 20 Apr 2026   Prob (F-statistic):               0.00
+Time:                        20:15:52   Log-Likelihood:                -74553.
+No. Observations:               72870   AIC:                         1.492e+05
+Df Residuals:                   72846   BIC:                         1.494e+05
+Df Model:                          23                                         
+Covariance Type:                  HC3                                         
+==================================================================================================
+                                     coef    std err          z      P>|z|      [0.025      0.975]
+--------------------------------------------------------------------------------------------------
+Intercept                          5.9348      0.034    173.006      0.000       5.868       6.002
+C(room_type)[T.Hotel room]         0.2180      0.030      7.254      0.000       0.159       0.277
+C(room_type)[T.Private room]      -0.9814      0.006   -174.878      0.000      -0.992      -0.970
+C(room_type)[T.Shared room]       -1.8284      0.026    -70.997      0.000      -1.879      -1.778
+C(month)[T.September]             -0.0352      0.005     -7.034      0.000      -0.045      -0.025
+minimum_nights                    -0.0030      0.000    -12.689      0.000      -0.003      -0.003
+number_of_reviews                 -0.0005   4.44e-05    -10.801      0.000      -0.001      -0.000
+reviews_per_month                 -0.0463      0.005     -9.822      0.000      -0.056      -0.037
+calculated_host_listings_count    -0.0002   2.01e-05    -10.465      0.000      -0.000      -0.000
+availability_365                   0.0003   2.36e-05     12.457      0.000       0.000       0.000
+number_of_reviews_ltm              0.0014      0.000      2.962      0.003       0.000       0.002
+Count_Public_Safety                0.0339      0.005      6.863      0.000       0.024       0.044
+Count_Fire_Stations               -0.1129      0.009    -12.273      0.000      -0.131      -0.095
+Count_Police_Stations             -0.1129      0.009    -12.273      0.000      -0.131      -0.095
+Count_Corrective_Facility         -0.0287      0.006     -4.802      0.000      -0.040      -0.017
+Count_Education_Facility          -0.0071      0.002     -4.263      0.000      -0.010      -0.004
+Population                     -9.757e-06   4.21e-07    -23.150      0.000   -1.06e-05   -8.93e-06
+Crime_Per_Capita                   0.0459      0.008      5.614      0.000       0.030       0.062
+Education_Per_Capita               0.0020   1.22e-05    164.982      0.000       0.002       0.002
+Public_Safety_Per_Capita         236.1660     23.070     10.237      0.000     190.949     281.383
+amenities_index                    0.2297      0.026      8.740      0.000       0.178       0.281
+crime_index                       -0.3021      0.037     -8.119      0.000      -0.375      -0.229
+education_index                   -0.0928      0.009    -10.138      0.000      -0.111      -0.075
+crime_events_per_capita           -7.3984      0.562    -13.168      0.000      -8.500      -6.297
+violent_crime_per_capita           4.1224      0.687      5.998      0.000       2.775       5.470
+property_crime_per_capita          5.6835      0.686      8.282      0.000       4.339       7.029
+part1_events_per_capita            3.4487      0.316     10.920      0.000       2.830       4.068
+==============================================================================
+Omnibus:                     9955.767   Durbin-Watson:                   1.876
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):            17049.965
+Skew:                           0.917   Prob(JB):                         0.00
+Kurtosis:                       4.501   Cond. No.                     5.55e+17
+==============================================================================
+
+Notes:
+[1] Standard Errors are heteroscedasticity robust (HC3)
+[2] The smallest eigenvalue is 4.05e-22. This might indicate that there are
+strong multicollinearity problems or that the design matrix is singular.
