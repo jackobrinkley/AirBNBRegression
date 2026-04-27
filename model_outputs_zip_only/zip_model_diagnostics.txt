@@ -1,0 +1,70 @@
+ZIP-only model diagnostics
+======================================================================
+
+Data diagnostics:
+raw_rows: 244
+rows_after_target_cleanup: 214
+unique_zips: 214
+target: Median_Price_June
+distance_columns_found: 18
+
+Important methodological note:
+ZIP_CODE is used only as a row identifier, not as a numeric predictor.
+This model is one-row-per-ZIP and predicts ZIP-level median Airbnb price.
+
+OLS formula:
+Formula-free OLS: log_median_price_june ~ log_population + log_part_1_crime_count + crime_per_10k + crime_z + Count_Educational_Facility + education_facilities_z + Count_Public_Safety + public_safety_z + Count_Fire_Stations + Count_Police_Stations + Count_Corrective_Facility + external_amenities_index + avg_landmark_distance_z + centrality_index + LAX_Median_Distance_June_(KM) + Hollywood_Walk_of_Fame_Median_Distance_June_(KM) + Griffith_Park_Median_Distance_June_(KM) + Walt_Disney_Concert_Hall_Median_Distance_June_(KM) + TCL_Chinese_Theater_Median_Distance_June_(KM) + Madame_Tussauds_Median_Distance_June_(KM) + Venice_Beach_Median_Distance_June_(KM) + Crypto_Arena_Median_Distance_June_(KM) + California_Science_Center_Median_Distance_June_(KM) + Hollywood_Sign_Median_Distance_June_(KM) + La_Brea_Median_Distance_June_(KM) + Getty_Center_Median_Distance_June_(KM) + Griffith_Observatory_Median_Distance_June_(KM) + Universal_Studios_Hollywood_Median_Distance_June_(KM) + Aquarium_of_the_Pacific_Median_Distance_June_(KM) + Santa_Monica_Pier_Median_Distance_June_(KM) + Queen_Mary_Median_Distance_June_(KM)
+
+OLS metrics:
+ols_r2_log: 0.5202473209916849
+ols_mae_price: 35.74030218894616
+ols_rmse_price: 59.13541244922367
+ols_rows: 213
+
+GBM metrics:
+gbm_train_r2_log: 0.9854859199628985
+gbm_test_r2_log: -0.1986565819613575
+gbm_train_mae_price: 6.485566767690361
+gbm_test_mae_price: 40.01352404335985
+gbm_train_rmse_price: 19.02294660837769
+gbm_test_rmse_price: 49.384539805324636
+gbm_train_rows: 159
+gbm_test_rows: 54
+
+Predictors included:
+- log_population
+- log_part_1_crime_count
+- crime_per_10k
+- crime_z
+- Count_Educational_Facility
+- education_facilities_z
+- Count_Public_Safety
+- public_safety_z
+- Count_Fire_Stations
+- Count_Police_Stations
+- Count_Corrective_Facility
+- external_amenities_index
+- avg_landmark_distance_z
+- centrality_index
+- LAX_Median_Distance_June_(KM)
+- Hollywood_Walk_of_Fame_Median_Distance_June_(KM)
+- Griffith_Park_Median_Distance_June_(KM)
+- Walt_Disney_Concert_Hall_Median_Distance_June_(KM)
+- TCL_Chinese_Theater_Median_Distance_June_(KM)
+- Madame_Tussauds_Median_Distance_June_(KM)
+- Venice_Beach_Median_Distance_June_(KM)
+- Crypto_Arena_Median_Distance_June_(KM)
+- California_Science_Center_Median_Distance_June_(KM)
+- Hollywood_Sign_Median_Distance_June_(KM)
+- La_Brea_Median_Distance_June_(KM)
+- Getty_Center_Median_Distance_June_(KM)
+- Griffith_Observatory_Median_Distance_June_(KM)
+- Universal_Studios_Hollywood_Median_Distance_June_(KM)
+- Aquarium_of_the_Pacific_Median_Distance_June_(KM)
+- Santa_Monica_Pier_Median_Distance_June_(KM)
+- Queen_Mary_Median_Distance_June_(KM)
+
+Notes:
+- Median price columns were excluded from predictors to avoid target leakage.
+- Airbnb supply variables are excluded unless INCLUDE_AIRBNB_SUPPLY_FEATURES=True.
+- With only ZIP-level rows, interpret nonlinear model performance cautiously.

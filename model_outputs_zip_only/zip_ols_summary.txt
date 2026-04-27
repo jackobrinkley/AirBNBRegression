@@ -1,0 +1,57 @@
+                              OLS Regression Results                             
+=================================================================================
+Dep. Variable:     log_median_price_june   R-squared:                       0.520
+Model:                               OLS   Adj. R-squared:                  0.456
+Method:                    Least Squares   F-statistic:                     2301.
+Date:                   Mon, 27 Apr 2026   Prob (F-statistic):          9.03e-220
+Time:                           14:38:49   Log-Likelihood:                -42.934
+No. Observations:                    213   AIC:                             137.9
+Df Residuals:                        187   BIC:                             225.3
+Df Model:                             25                                         
+Covariance Type:                     HC3                                         
+=========================================================================================================================
+                                                            coef    std err          z      P>|z|      [0.025      0.975]
+-------------------------------------------------------------------------------------------------------------------------
+const                                                   -23.1350     14.839     -1.559      0.119     -52.219       5.949
+log_population                                           -0.2469      0.057     -4.297      0.000      -0.360      -0.134
+log_part_1_crime_count                                    0.0328      0.025      1.333      0.183      -0.015       0.081
+crime_per_10k                                            -0.1471      0.094     -1.565      0.118      -0.331       0.037
+crime_z                                                  13.2740      8.514      1.559      0.119      -3.413      29.961
+Count_Educational_Facility                               -6.6543      4.267     -1.560      0.119     -15.017       1.709
+education_facilities_z                                   41.1491     26.393      1.559      0.119     -10.581      92.879
+Count_Public_Safety                                     -17.5061     11.252     -1.556      0.120     -39.559       4.547
+public_safety_z                                          25.3262     16.231      1.560      0.119      -6.486      57.139
+Count_Fire_Stations                                      -7.3533      4.719     -1.558      0.119     -16.602       1.895
+Count_Police_Stations                                    -7.3533      4.719     -1.558      0.119     -16.602       1.895
+Count_Corrective_Facility                                -0.0198      0.051     -0.391      0.696      -0.119       0.079
+external_amenities_index                                 21.2593     13.631      1.560      0.119      -5.457      47.976
+avg_landmark_distance_z                                 -51.4297     31.488     -1.633      0.102    -113.144      10.285
+centrality_index                                         51.4297     31.488      1.633      0.102     -10.285     113.144
+LAX_Median_Distance_June_(KM)                             0.6086      0.386      1.577      0.115      -0.148       1.365
+Hollywood_Walk_of_Fame_Median_Distance_June_(KM)          1.8121      1.166      1.554      0.120      -0.474       4.098
+Griffith_Park_Median_Distance_June_(KM)                   0.5545      0.382      1.453      0.146      -0.194       1.303
+Walt_Disney_Concert_Hall_Median_Distance_June_(KM)        0.4406      0.267      1.649      0.099      -0.083       0.964
+TCL_Chinese_Theater_Median_Distance_June_(KM)           -20.6306     25.720     -0.802      0.422     -71.040      29.779
+Madame_Tussauds_Median_Distance_June_(KM)                20.0485     24.841      0.807      0.420     -28.638      68.735
+Venice_Beach_Median_Distance_June_(KM)                    0.2758      0.209      1.319      0.187      -0.134       0.686
+Crypto_Arena_Median_Distance_June_(KM)                    0.2735      0.280      0.976      0.329      -0.275       0.822
+California_Science_Center_Median_Distance_June_(KM)       0.4216      0.228      1.850      0.064      -0.025       0.868
+Hollywood_Sign_Median_Distance_June_(KM)                  0.6322      0.463      1.366      0.172      -0.275       1.539
+La_Brea_Median_Distance_June_(KM)                         0.3714      0.231      1.604      0.109      -0.082       0.825
+Getty_Center_Median_Distance_June_(KM)                    0.3203      0.217      1.474      0.141      -0.106       0.746
+Griffith_Observatory_Median_Distance_June_(KM)           -0.1966      0.515     -0.382      0.703      -1.205       0.812
+Universal_Studios_Hollywood_Median_Distance_June_(KM)     0.4510      0.332      1.357      0.175      -0.201       1.103
+Aquarium_of_the_Pacific_Median_Distance_June_(KM)         0.7715      0.292      2.642      0.008       0.199       1.344
+Santa_Monica_Pier_Median_Distance_June_(KM)               0.3806      0.218      1.749      0.080      -0.046       0.807
+Queen_Mary_Median_Distance_June_(KM)                     -0.2311      0.261     -0.885      0.376      -0.743       0.281
+==============================================================================
+Omnibus:                        2.623   Durbin-Watson:                   1.778
+Prob(Omnibus):                  0.269   Jarque-Bera (JB):                2.267
+Skew:                           0.237   Prob(JB):                        0.322
+Kurtosis:                       3.178   Cond. No.                     1.14e+16
+==============================================================================
+
+Notes:
+[1] Standard Errors are heteroscedasticity robust (HC3)
+[2] The smallest eigenvalue is 3.7e-26. This might indicate that there are
+strong multicollinearity problems or that the design matrix is singular.
