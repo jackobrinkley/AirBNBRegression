@@ -1,0 +1,85 @@
+Collinearity diagnostic report
+======================================================================
+
+Pairs with |Pearson r| >= 0.8: 126
+
+  r = +1.0000   crime_per_10k   <->   crime_z
+  r = +1.0000   Count_Educational_Facility   <->   education_facilities_z
+  r = +1.0000   Count_Public_Safety   <->   public_safety_z
+  r = +1.0000   Count_Fire_Stations   <->   Count_Police_Stations
+  r = -1.0000   avg_landmark_distance_z   <->   centrality_index
+  r = +1.0000   TCL_Chinese_Theater_Median_Distance_June_(KM)   <->   Madame_Tussauds_Median_Distance_June_(KM)
+  r = +0.9999   Aquarium_of_the_Pacific_Median_Distance_June_(KM)   <->   Queen_Mary_Median_Distance_June_(KM)
+  r = +0.9985   Hollywood_Walk_of_Fame_Median_Distance_June_(KM)   <->   TCL_Chinese_Theater_Median_Distance_June_(KM)
+  r = +0.9984   Hollywood_Walk_of_Fame_Median_Distance_June_(KM)   <->   Madame_Tussauds_Median_Distance_June_(KM)
+  r = +0.9964   Walt_Disney_Concert_Hall_Median_Distance_June_(KM)   <->   Crypto_Arena_Median_Distance_June_(KM)
+  r = +0.9958   Griffith_Park_Median_Distance_June_(KM)   <->   Griffith_Observatory_Median_Distance_June_(KM)
+  r = +0.9940   Griffith_Park_Median_Distance_June_(KM)   <->   Hollywood_Sign_Median_Distance_June_(KM)
+  r = +0.9936   Venice_Beach_Median_Distance_June_(KM)   <->   Santa_Monica_Pier_Median_Distance_June_(KM)
+  r = +0.9925   Hollywood_Sign_Median_Distance_June_(KM)   <->   Griffith_Observatory_Median_Distance_June_(KM)
+  r = +0.9923   Hollywood_Walk_of_Fame_Median_Distance_June_(KM)   <->   Griffith_Observatory_Median_Distance_June_(KM)
+  r = +0.9922   Hollywood_Sign_Median_Distance_June_(KM)   <->   Universal_Studios_Hollywood_Median_Distance_June_(KM)
+  r = -0.9901   centrality_index   <->   La_Brea_Median_Distance_June_(KM)
+  r = +0.9901   avg_landmark_distance_z   <->   La_Brea_Median_Distance_June_(KM)
+  r = +0.9900   Crypto_Arena_Median_Distance_June_(KM)   <->   California_Science_Center_Median_Distance_June_(KM)
+  r = +0.9875   Hollywood_Walk_of_Fame_Median_Distance_June_(KM)   <->   Hollywood_Sign_Median_Distance_June_(KM)
+  r = +0.9867   TCL_Chinese_Theater_Median_Distance_June_(KM)   <->   Hollywood_Sign_Median_Distance_June_(KM)
+  r = +0.9864   Madame_Tussauds_Median_Distance_June_(KM)   <->   Hollywood_Sign_Median_Distance_June_(KM)
+  r = +0.9860   TCL_Chinese_Theater_Median_Distance_June_(KM)   <->   Griffith_Observatory_Median_Distance_June_(KM)
+  r = +0.9857   Madame_Tussauds_Median_Distance_June_(KM)   <->   Griffith_Observatory_Median_Distance_June_(KM)
+  r = +0.9838   Madame_Tussauds_Median_Distance_June_(KM)   <->   La_Brea_Median_Distance_June_(KM)
+  r = +0.9835   TCL_Chinese_Theater_Median_Distance_June_(KM)   <->   La_Brea_Median_Distance_June_(KM)
+  r = +0.9825   TCL_Chinese_Theater_Median_Distance_June_(KM)   <->   Universal_Studios_Hollywood_Median_Distance_June_(KM)
+  r = +0.9824   Madame_Tussauds_Median_Distance_June_(KM)   <->   Universal_Studios_Hollywood_Median_Distance_June_(KM)
+  r = +0.9807   Hollywood_Walk_of_Fame_Median_Distance_June_(KM)   <->   La_Brea_Median_Distance_June_(KM)
+  r = +0.9797   Hollywood_Walk_of_Fame_Median_Distance_June_(KM)   <->   Griffith_Park_Median_Distance_June_(KM)
+  r = +0.9766   Hollywood_Walk_of_Fame_Median_Distance_June_(KM)   <->   Universal_Studios_Hollywood_Median_Distance_June_(KM)
+  r = +0.9764   Walt_Disney_Concert_Hall_Median_Distance_June_(KM)   <->   California_Science_Center_Median_Distance_June_(KM)
+  r = +0.9735   Griffith_Park_Median_Distance_June_(KM)   <->   Universal_Studios_Hollywood_Median_Distance_June_(KM)
+  r = +0.9731   Griffith_Park_Median_Distance_June_(KM)   <->   TCL_Chinese_Theater_Median_Distance_June_(KM)
+  r = +0.9726   Griffith_Park_Median_Distance_June_(KM)   <->   Madame_Tussauds_Median_Distance_June_(KM)
+  r = +0.9717   Griffith_Observatory_Median_Distance_June_(KM)   <->   Universal_Studios_Hollywood_Median_Distance_June_(KM)
+  r = +0.9712   Getty_Center_Median_Distance_June_(KM)   <->   Santa_Monica_Pier_Median_Distance_June_(KM)
+  r = +0.9652   LAX_Median_Distance_June_(KM)   <->   Venice_Beach_Median_Distance_June_(KM)
+  r = +0.9644   avg_landmark_distance_z   <->   Hollywood_Walk_of_Fame_Median_Distance_June_(KM)
+  r = -0.9644   centrality_index   <->   Hollywood_Walk_of_Fame_Median_Distance_June_(KM)
+
+Features with VIF > 10.0 (severe): 28
+  VIF =          inf   crime_per_10k
+  VIF =          inf   Count_Educational_Facility
+  VIF =          inf   crime_z
+  VIF =          inf   education_facilities_z
+  VIF =          inf   Count_Public_Safety
+  VIF =          inf   Count_Fire_Stations
+  VIF =          inf   public_safety_z
+  VIF =          inf   centrality_index
+  VIF =          inf   avg_landmark_distance_z
+  VIF =          inf   Count_Police_Stations
+  VIF =          inf   external_amenities_index
+  VIF = 126751405.55   TCL_Chinese_Theater_Median_Distance_June_(KM)
+  VIF = 118068091.87   Madame_Tussauds_Median_Distance_June_(KM)
+  VIF =    245579.67   Hollywood_Walk_of_Fame_Median_Distance_June_(KM)
+  VIF =     75406.90   Hollywood_Sign_Median_Distance_June_(KM)
+  VIF =     36272.76   Griffith_Observatory_Median_Distance_June_(KM)
+  VIF =     25155.55   Griffith_Park_Median_Distance_June_(KM)
+  VIF =     21160.77   Aquarium_of_the_Pacific_Median_Distance_June_(KM)
+  VIF =     20538.08   Queen_Mary_Median_Distance_June_(KM)
+  VIF =     17594.12   Universal_Studios_Hollywood_Median_Distance_June_(KM)
+  VIF =      9640.48   Crypto_Arena_Median_Distance_June_(KM)
+  VIF =      4339.86   Walt_Disney_Concert_Hall_Median_Distance_June_(KM)
+  VIF =      4316.70   Santa_Monica_Pier_Median_Distance_June_(KM)
+  VIF =      3957.34   Venice_Beach_Median_Distance_June_(KM)
+  VIF =      2501.36   La_Brea_Median_Distance_June_(KM)
+  VIF =      1745.87   California_Science_Center_Median_Distance_June_(KM)
+  VIF =      1405.16   Getty_Center_Median_Distance_June_(KM)
+  VIF =       500.68   LAX_Median_Distance_June_(KM)
+
+Features with 5.0 < VIF <= 10.0 (warning): 0
+
+Suggested action ordering:
+  1. Inspect any pairs with |r| > 0.99 -- these are likely structural duplicates.
+  2. For each VIF > 10 feature, decide whether to drop it (prefer raw
+     over derived; prefer interpretable units).
+  3. Re-run VIF after each removal -- they update non-trivially.
+  4. Stop when all remaining VIFs are below 5 (or below 10 if you
+     are willing to use Ridge).

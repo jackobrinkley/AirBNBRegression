@@ -1,32 +1,25 @@
 """
-regression_zip_only.py
+regression_single.py  (cleaned)
 
-Purpose:
-    ZIP-level model only.
+ZIP-level model. One row per ZIP from NewData/CleanedDataJune.csv.
+Predicts log(Median_Price_June) from external area-level features.
 
-    This model uses only one row per ZIP code from:
-        NewData/CleanedDataJune.csv
-
-    It predicts:
-        Median_Price_June
-
-    using only external / area-level variables:
-        crime, safety, education, population, and distances to landmarks.
-
-    ZIP_Code is used only as an identifier. It is NOT used as a numeric predictor.
-
-Expected project layout:
-    AirBNBRegression/
-        regression_zip_only.py
-        NewData/
-            CleanedDataJune.csv
-        model_outputs_zip_only/   <-- created automatically
+Major changes from the previous version:
+    1. No longer manufactures collinear features (z-scored duplicates of raw
+       counts, composite indices that are linear combinations of columns
+       already in the model, definitional negations).
+    2. Adds a LANDMARK_STRATEGY flag: 'centrality_only' (parsimonious),
+       'all_distances' (information-rich, requires regularization),
+       or 'pca' (compromise via top principal components).
+    3. Detects whether Count_Fire_Stations and Count_Police_Stations are
+       identical or near-identical and warns you, since their OLS
+       coefficients in the previous run suggested upstream duplication.
+    4. Adds Ridge regression alongside OLS, with cross-validated alpha.
+    5. Replaces the single 75/25 split with 5-fold cross-validation
+       for Ridge and GBM. Reports mean and std across folds.
 
 Run:
-    python regression_zip_only.py
-
-Install:
-    pip install pandas numpy matplotlib scikit-learn statsmodels
+    python regression_single.py
 """
 
 from pathlib import Path
@@ -37,16 +30,17 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 import statsmodels.api as sm
-import statsmodels.formula.api as smf
 
-from sklearn.model_selection import train_test_split, KFold, cross_val_score
+from sklearn.model_selection import KFold, cross_val_score
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler
 from sklearn.impute import SimpleImputer
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
-from sklearn.ensemble import HistGradientBoostingRegressor, RandomForestRegressor
+from sklearn.ensemble import HistGradientBoostingRegressor
 from sklearn.inspection import permutation_importance
+from sklearn.linear_model import RidgeCV
+from sklearn.decomposition import PCA
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
@@ -57,7 +51,7 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 
 BASE_DIR = Path(__file__).resolve().parent
 NEW_DATA_DIR = BASE_DIR / "NewData"
-OUTPUT_DIR = BASE_DIR / "model_outputs_single"
+OUTPUT_DIR = BASE_DIR / "model_outputs_adjusted"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 DATA_FILE = NEW_DATA_DIR / "CleanedDataJune.csv"
@@ -65,10 +59,17 @@ DATA_FILE = NEW_DATA_DIR / "CleanedDataJune.csv"
 TARGET_COL = "Median_Price_June"
 
 RANDOM_STATE = 42
-TEST_SIZE = 0.25
+N_SPLITS = 5  # k for k-fold CV
 
-# Set to True if you want to include Airbnb supply/density as predictors.
-# For a purer "external factors only" model, this should stay False.
+# How to handle the 17 individual landmark distance columns.
+#   "centrality_only" : drop all individual distances, keep centrality_index
+#   "all_distances"   : keep all individual distances, drop centrality_index
+#   "pca"             : replace all distances with top N principal components
+# LANDMARK_STRATEGY = "centrality_only"
+LANDMARK_STRATEGY = "all_distances"
+PCA_N_COMPONENTS = 3
+
+# Set to True only if you want to include Airbnb supply/density as predictors.
 INCLUDE_AIRBNB_SUPPLY_FEATURES = False
 
 
@@ -76,29 +77,18 @@ INCLUDE_AIRBNB_SUPPLY_FEATURES = False
 # HELPERS
 # ============================================================
 
-def safe_numeric(series: pd.Series) -> pd.Series:
-    return pd.to_numeric(series, errors="coerce")
+def safe_numeric(s: pd.Series) -> pd.Series:
+    return pd.to_numeric(s, errors="coerce")
 
 
-def standardize_zip(series: pd.Series) -> pd.Series:
-    """
-    ZIP is only an identifier / join key, never a numeric predictor.
-    """
-    s = pd.to_numeric(series, errors="coerce")
+def standardize_zip(s: pd.Series) -> pd.Series:
+    s = pd.to_numeric(s, errors="coerce")
     s = s.where((s >= 10000) & (s <= 99999))
     return s.astype("Int64")
 
 
 def rmse(y_true, y_pred) -> float:
     return float(np.sqrt(mean_squared_error(y_true, y_pred)))
-
-
-def zscore(series: pd.Series) -> pd.Series:
-    s = pd.to_numeric(series, errors="coerce")
-    std = s.std()
-    if pd.isna(std) or std == 0:
-        return pd.Series(np.zeros(len(s)), index=s.index)
-    return (s - s.mean()) / std
 
 
 def write_text(path: Path, text: str) -> None:
@@ -122,10 +112,8 @@ def plot_actual_vs_predicted(y_true, y_pred, title, outpath):
 def plot_feature_importance(importance_df: pd.DataFrame, outpath: Path, top_n: int = 20):
     if importance_df.empty:
         return
-
     d = importance_df.sort_values("importance_mean", ascending=False).head(top_n)
     d = d.iloc[::-1]
-
     plt.figure(figsize=(10, 8))
     plt.barh(d["feature"], d["importance_mean"])
     plt.xlabel("Permutation importance")
@@ -137,7 +125,7 @@ def plot_feature_importance(importance_df: pd.DataFrame, outpath: Path, top_n: i
 
 
 # ============================================================
-# DATA LOADING + FEATURE ENGINEERING
+# DATA LOADING + FEATURE ENGINEERING (cleaned)
 # ============================================================
 
 def load_zip_data():
@@ -155,7 +143,6 @@ def load_zip_data():
         raise ValueError("CleanedDataJune.csv must contain ZIP_Code or ZIP_CODE.")
 
     df["ZIP_CODE"] = standardize_zip(df["ZIP_CODE"])
-
     for col in df.columns:
         if col != "ZIP_CODE":
             df[col] = safe_numeric(df[col])
@@ -164,14 +151,33 @@ def load_zip_data():
         raise ValueError(f"Target column {TARGET_COL} was not found.")
 
     raw_rows = len(df)
-
     df = df.dropna(subset=["ZIP_CODE", TARGET_COL]).copy()
-
-    # Basic target cleanup
     df = df[(df[TARGET_COL] > 0) & (df[TARGET_COL] < 5000)].copy()
     df["log_median_price_june"] = np.log(df[TARGET_COL])
 
-    # Safer transformed/scaled versions of external columns
+    # ---- Sanity check: are Fire and Police stations literally duplicates? ----
+    fire_police_warning = None
+    if {"Count_Fire_Stations", "Count_Police_Stations"}.issubset(df.columns):
+        a = df["Count_Fire_Stations"].astype(float)
+        b = df["Count_Police_Stations"].astype(float)
+        if a.equals(b):
+            fire_police_warning = (
+                "Count_Fire_Stations and Count_Police_Stations are IDENTICAL columns. "
+                "This is almost certainly a data error upstream. Dropping Count_Police_Stations."
+            )
+            df = df.drop(columns=["Count_Police_Stations"])
+        else:
+            r = a.corr(b)
+            if pd.notna(r) and abs(r) > 0.99:
+                fire_police_warning = (
+                    f"Count_Fire_Stations and Count_Police_Stations have correlation {r:.4f}. "
+                    "Near-perfect collinearity. Dropping Count_Police_Stations to be safe."
+                )
+                df = df.drop(columns=["Count_Police_Stations"])
+    if fire_police_warning:
+        print("WARNING:", fire_police_warning)
+
+    # ---- Useful transformations (keep) ----
     if "Population" in df.columns:
         df["log_population"] = np.log1p(df["Population"].clip(lower=0))
 
@@ -180,40 +186,35 @@ def load_zip_data():
 
     if "Part_1_Crime_Per_Capita" in df.columns:
         df["crime_per_10k"] = df["Part_1_Crime_Per_Capita"] * 10000
-        df["crime_z"] = zscore(df["Part_1_Crime_Per_Capita"])
 
-    if "Count_Educational_Facility" in df.columns:
-        df["education_facilities_z"] = zscore(df["Count_Educational_Facility"])
-
-    if "Count_Public_Safety" in df.columns:
-        df["public_safety_z"] = zscore(df["Count_Public_Safety"])
-
-    # Composite amenities / safety index from external facility counts
-    amenity_parts = []
-    for c in [
-        "Count_Educational_Facility",
-        "Count_Public_Safety",
-        "Count_Fire_Stations",
-        "Count_Police_Stations",
-    ]:
-        if c in df.columns:
-            amenity_parts.append(zscore(df[c]))
-
-    if amenity_parts:
-        df["external_amenities_index"] = sum(amenity_parts) / len(amenity_parts)
-
-    # Distances to attractions / landmarks
+    # ---- Centrality index (kept as the lone landmark summary) ----
     distance_cols = [
         c for c in df.columns
-        if ("Distance" in c or "distance" in c) and c != "ZIP_CODE"
+        if ("Distance" in c or "distance" in c)
+        and c != "ZIP_CODE"
+        and "Sept" not in c
     ]
-
     if distance_cols:
-        # Smaller distance means closer to major destinations.
-        # This index is the average z-scored distance to listed landmarks.
-        distance_zs = [zscore(df[c]) for c in distance_cols]
-        df["avg_landmark_distance_z"] = sum(distance_zs) / len(distance_zs)
-        df["centrality_index"] = -df["avg_landmark_distance_z"]
+        # Use raw means/stds rather than producing both a z-score and its negation.
+        dist_z = pd.DataFrame({
+            c: (df[c] - df[c].mean()) / df[c].std() for c in distance_cols
+        })
+        df["centrality_index"] = -dist_z.mean(axis=1)
+
+    # ---- PCA on distances (only if requested) ----
+    pca_components = []
+    if LANDMARK_STRATEGY == "pca" and distance_cols:
+        clean = df[distance_cols].fillna(df[distance_cols].median(numeric_only=True))
+        scaler = StandardScaler()
+        clean_s = scaler.fit_transform(clean)
+        n_comp = min(PCA_N_COMPONENTS, clean_s.shape[1])
+        pca = PCA(n_components=n_comp, random_state=RANDOM_STATE)
+        pcs = pca.fit_transform(clean_s)
+        for i in range(n_comp):
+            col = f"distance_pc_{i + 1}"
+            df[col] = pcs[:, i]
+            pca_components.append(col)
+        print(f"PCA explained variance ratios: {pca.explained_variance_ratio_.round(4)}")
 
     diagnostics = {
         "raw_rows": raw_rows,
@@ -221,54 +222,48 @@ def load_zip_data():
         "unique_zips": int(df["ZIP_CODE"].nunique()),
         "target": TARGET_COL,
         "distance_columns_found": len(distance_cols),
+        "landmark_strategy": LANDMARK_STRATEGY,
+        "fire_police_warning": fire_police_warning,
     }
 
-    return df, diagnostics
+    return df, diagnostics, distance_cols, pca_components
 
 
-def get_predictor_columns(df: pd.DataFrame):
+def get_predictor_columns(df: pd.DataFrame, distance_cols, pca_components):
     """
-    Only external / ZIP-level variables.
-    Excludes ZIP_CODE and any median price columns to avoid target leakage.
+    Cleaned predictor list. No z-scored duplicates, no composite indices
+    that are linear combinations of columns already in the model.
     """
-
-    explicit_external = [
+    base = [
         "log_population",
         "log_part_1_crime_count",
         "crime_per_10k",
-        "crime_z",
         "Count_Educational_Facility",
-        "education_facilities_z",
         "Count_Public_Safety",
-        "public_safety_z",
         "Count_Fire_Stations",
-        "Count_Police_Stations",
+        "Count_Police_Stations",  # may have been dropped above; filtered below
         "Count_Corrective_Facility",
-        "external_amenities_index",
-        "avg_landmark_distance_z",
-        "centrality_index",
     ]
 
-    distance_cols = [
-        c for c in df.columns
-        if ("Distance" in c or "distance" in c)
-        and c != "ZIP_CODE"
-        and "Sept" not in c  # June-only model should not use September-specific distance variables by default
-    ]
+    if LANDMARK_STRATEGY == "centrality_only":
+        landmark = ["centrality_index"]
+    elif LANDMARK_STRATEGY == "all_distances":
+        landmark = list(distance_cols)
+    elif LANDMARK_STRATEGY == "pca":
+        landmark = list(pca_components)
+    else:
+        raise ValueError(f"Unknown LANDMARK_STRATEGY: {LANDMARK_STRATEGY}")
 
-    supply_cols = []
+    supply = []
     if INCLUDE_AIRBNB_SUPPLY_FEATURES:
-        supply_cols = [
-            c for c in df.columns
-            if "Airbnb_Listings" in c and "June" in c
-        ]
+        supply = [c for c in df.columns if "Airbnb_Listings" in c and "June" in c]
 
     predictors = []
-    for c in explicit_external + distance_cols + supply_cols:
+    for c in base + landmark + supply:
         if c in df.columns and c not in predictors:
             predictors.append(c)
 
-    # Hard exclusions against leakage
+    # Hard exclusions against target leakage
     predictors = [
         c for c in predictors
         if not c.startswith("Median_Price")
@@ -276,7 +271,6 @@ def get_predictor_columns(df: pd.DataFrame):
         and c != "log_median_price_june"
         and c != "ZIP_CODE"
     ]
-
     return predictors
 
 
@@ -284,79 +278,63 @@ def get_predictor_columns(df: pd.DataFrame):
 # MODELS
 # ============================================================
 
-def run_ols(df: pd.DataFrame, predictors):
-    """
-    Formula-free OLS.
-
-    This avoids Patsy/statsmodels formula parsing problems caused by column names
-    containing parentheses, spaces, slashes, or other special characters.
-    """
-
+def prepare_X_y(df, predictors):
     model_df = df[["ZIP_CODE", TARGET_COL, "log_median_price_june"] + predictors].dropna().copy()
-
-    y = model_df["log_median_price_june"]
-
     X = model_df[predictors].copy()
-
-    # Force all predictors to numeric
     for col in X.columns:
         X[col] = pd.to_numeric(X[col], errors="coerce")
-
-    # Drop columns that are entirely missing
-    X = X.dropna(axis=1, how="all")
-
-    # Fill remaining missing values with medians
-    X = X.fillna(X.median(numeric_only=True))
-
-    # Drop constant columns, because they do not help the model
+    X = X.dropna(axis=1, how="all").fillna(X.median(numeric_only=True))
     constant_cols = [c for c in X.columns if X[c].nunique(dropna=True) <= 1]
     if constant_cols:
-        print("Dropping constant OLS columns:")
-        for c in constant_cols:
-            print(f"  - {c}")
+        print("Dropping constant columns:", constant_cols)
         X = X.drop(columns=constant_cols)
-
-    # Add intercept
-    X = sm.add_constant(X, has_constant="add")
-
-    model = sm.OLS(y, X).fit(cov_type="HC3")
-
-    model_df["pred_log_price_ols"] = model.predict(X)
-    model_df["pred_price_ols"] = np.exp(model_df["pred_log_price_ols"])
-
-    formula_description = "Formula-free OLS: log_median_price_june ~ " + " + ".join(
-        [c for c in X.columns if c != "const"]
-    )
-
-    return model, model_df, formula_description
-
-def run_gbm(df: pd.DataFrame, predictors):
-    model_df = df[["ZIP_CODE", TARGET_COL, "log_median_price_june"] + predictors].dropna().copy()
-
-    X = model_df[predictors]
     y = model_df["log_median_price_june"]
+    return model_df, X, y
 
-    X_train, X_test, y_train, y_test, idx_train, idx_test = train_test_split(
-        X,
-        y,
-        model_df.index,
-        test_size=TEST_SIZE,
-        random_state=RANDOM_STATE,
-    )
 
-    numeric_transformer = Pipeline(steps=[
-        ("imputer", SimpleImputer(strategy="median")),
+def run_ols(df, predictors):
+    model_df, X, y = prepare_X_y(df, predictors)
+    X_const = sm.add_constant(X, has_constant="add")
+    model = sm.OLS(y, X_const).fit(cov_type="HC3")
+    model_df["pred_log_price_ols"] = model.predict(X_const)
+    model_df["pred_price_ols"] = np.exp(model_df["pred_log_price_ols"])
+    formula = "log_median_price_june ~ " + " + ".join(X.columns)
+    return model, model_df, formula
+
+
+def run_ridge_cv(df, predictors):
+    model_df, X, y = prepare_X_y(df, predictors)
+    pipe = Pipeline([
         ("scaler", StandardScaler()),
+        ("ridge", RidgeCV(alphas=np.logspace(-3, 3, 25), cv=N_SPLITS)),
     ])
+    kf = KFold(n_splits=N_SPLITS, shuffle=True, random_state=RANDOM_STATE)
+    cv_r2 = cross_val_score(pipe, X, y, cv=kf, scoring="r2")
+    pipe.fit(X, y)
 
-    preprocessor = ColumnTransformer(
-        transformers=[
-            ("num", numeric_transformer, predictors),
-        ],
-        remainder="drop",
-    )
+    pred_log = pipe.predict(X)
+    metrics = {
+        "ridge_cv_r2_log_mean": float(cv_r2.mean()),
+        "ridge_cv_r2_log_std": float(cv_r2.std()),
+        "ridge_chosen_alpha": float(pipe.named_steps["ridge"].alpha_),
+        "ridge_full_fit_r2_log": float(r2_score(y, pred_log)),
+        "ridge_full_fit_mae_price": float(mean_absolute_error(np.exp(y), np.exp(pred_log))),
+        "ridge_full_fit_rmse_price": rmse(np.exp(y), np.exp(pred_log)),
+    }
 
-    # Conservative model because there are only ~250 ZIPs.
+    coefs = pd.DataFrame({
+        "feature": X.columns,
+        "ridge_coef_standardized": pipe.named_steps["ridge"].coef_,
+    }).sort_values("ridge_coef_standardized", key=np.abs, ascending=False)
+
+    model_df["pred_log_price_ridge"] = pred_log
+    model_df["pred_price_ridge"] = np.exp(pred_log)
+    return pipe, model_df, metrics, coefs
+
+
+def run_gbm_cv(df, predictors):
+    model_df, X, y = prepare_X_y(df, predictors)
+
     gbm = HistGradientBoostingRegressor(
         loss="squared_error",
         learning_rate=0.04,
@@ -367,86 +345,70 @@ def run_gbm(df: pd.DataFrame, predictors):
         random_state=RANDOM_STATE,
     )
 
-    pipe = Pipeline(steps=[
-        ("preprocessor", preprocessor),
+    pipe = Pipeline([
+        ("imputer", SimpleImputer(strategy="median")),
+        ("scaler", StandardScaler()),
         ("model", gbm),
     ])
 
-    pipe.fit(X_train, y_train)
+    kf = KFold(n_splits=N_SPLITS, shuffle=True, random_state=RANDOM_STATE)
+    cv_r2 = cross_val_score(pipe, X, y, cv=kf, scoring="r2")
 
-    pred_train_log = pipe.predict(X_train)
-    pred_test_log = pipe.predict(X_test)
-
-    pred_train_price = np.exp(pred_train_log)
-    pred_test_price = np.exp(pred_test_log)
-
-    y_train_price = np.exp(y_train)
-    y_test_price = np.exp(y_test)
-
+    pipe.fit(X, y)
+    pred_log = pipe.predict(X)
     metrics = {
-        "gbm_train_r2_log": r2_score(y_train, pred_train_log),
-        "gbm_test_r2_log": r2_score(y_test, pred_test_log),
-        "gbm_train_mae_price": mean_absolute_error(y_train_price, pred_train_price),
-        "gbm_test_mae_price": mean_absolute_error(y_test_price, pred_test_price),
-        "gbm_train_rmse_price": rmse(y_train_price, pred_train_price),
-        "gbm_test_rmse_price": rmse(y_test_price, pred_test_price),
-        "gbm_train_rows": len(X_train),
-        "gbm_test_rows": len(X_test),
+        "gbm_cv_r2_log_mean": float(cv_r2.mean()),
+        "gbm_cv_r2_log_std": float(cv_r2.std()),
+        "gbm_full_fit_r2_log": float(r2_score(y, pred_log)),
+        "gbm_full_fit_mae_price": float(mean_absolute_error(np.exp(y), np.exp(pred_log))),
+        "gbm_full_fit_rmse_price": rmse(np.exp(y), np.exp(pred_log)),
     }
-
-    pred_df = pd.DataFrame({
-        "ZIP_CODE": model_df.loc[idx_test, "ZIP_CODE"].values,
-        "actual_price": y_test_price.values,
-        "predicted_price_gbm": pred_test_price,
-        "actual_log_price": y_test.values,
-        "predicted_log_price_gbm": pred_test_log,
-    }, index=idx_test)
 
     try:
         result = permutation_importance(
-            pipe,
-            X_test,
-            y_test,
-            n_repeats=10,
-            random_state=RANDOM_STATE,
-            scoring="r2",
+            pipe, X, y, n_repeats=10, random_state=RANDOM_STATE, scoring="r2"
         )
-
         importance_df = pd.DataFrame({
-            "feature": predictors,
+            "feature": X.columns,
             "importance_mean": result.importances_mean,
             "importance_std": result.importances_std,
         }).sort_values("importance_mean", ascending=False)
-    except Exception as e:
-        importance_df = pd.DataFrame({
-            "feature": predictors,
-            "importance_mean": np.nan,
-            "importance_std": np.nan,
-        })
+    except Exception:
+        importance_df = pd.DataFrame({"feature": X.columns,
+                                      "importance_mean": np.nan,
+                                      "importance_std": np.nan})
 
-    return pipe, pred_df, metrics, importance_df
+    model_df["pred_log_price_gbm"] = pred_log
+    model_df["pred_price_gbm"] = np.exp(pred_log)
+    return pipe, model_df, metrics, importance_df
 
 
 # ============================================================
 # OUTPUTS
 # ============================================================
 
-def save_outputs(df, diagnostics, predictors, ols_model, ols_df, ols_formula, gbm_pred, gbm_metrics, importance_df):
+def save_outputs(df, diagnostics, predictors,
+                 ols_model, ols_df, ols_formula,
+                 ridge_df, ridge_metrics, ridge_coefs,
+                 gbm_df, gbm_metrics, importance_df):
+
+    # Datasets
     df.to_csv(OUTPUT_DIR / "single_model_dataset.csv", index=False)
     ols_df.to_csv(OUTPUT_DIR / "single_ols_predictions.csv", index=False)
-    gbm_pred.to_csv(OUTPUT_DIR / "single_gbm_test_predictions.csv", index=False)
+    ridge_df.to_csv(OUTPUT_DIR / "single_ridge_predictions.csv", index=False)
+    gbm_df.to_csv(OUTPUT_DIR / "single_gbm_predictions.csv", index=False)
     importance_df.to_csv(OUTPUT_DIR / "single_gbm_feature_importance.csv", index=False)
+    ridge_coefs.to_csv(OUTPUT_DIR / "single_ridge_coefficients.csv", index=False)
 
+    # OLS summary + coefficients
     write_text(OUTPUT_DIR / "single_ols_summary.txt", str(ols_model.summary()))
-
-    coef_df = pd.DataFrame({
+    pd.DataFrame({
         "term": ols_model.params.index,
         "coef": ols_model.params.values,
         "std_err": ols_model.bse.values,
         "z_value": ols_model.tvalues.values,
         "p_value": ols_model.pvalues.values,
-    })
-    coef_df.to_csv(OUTPUT_DIR / "single_ols_coefficients.csv", index=False)
+    }).to_csv(OUTPUT_DIR / "single_ols_coefficients.csv", index=False)
 
     ols_metrics = {
         "ols_r2_log": r2_score(ols_df["log_median_price_june"], ols_df["pred_log_price_ols"]),
@@ -455,59 +417,54 @@ def save_outputs(df, diagnostics, predictors, ols_model, ols_df, ols_formula, gb
         "ols_rows": len(ols_df),
     }
 
-    lines = []
-    lines.append("ZIP-only model diagnostics")
-    lines.append("=" * 70)
-    lines.append("")
-    lines.append("Data diagnostics:")
-    for k, v in diagnostics.items():
-        lines.append(f"{k}: {v}")
-    lines.append("")
-    lines.append("Important methodological note:")
-    lines.append("ZIP_CODE is used only as a row identifier, not as a numeric predictor.")
-    lines.append("This model is one-row-per-ZIP and predicts ZIP-level median Airbnb price.")
-    lines.append("")
-    lines.append("OLS formula:")
-    lines.append(ols_formula)
-    lines.append("")
-    lines.append("OLS metrics:")
-    for k, v in ols_metrics.items():
-        lines.append(f"{k}: {v}")
-    lines.append("")
-    lines.append("GBM metrics:")
-    for k, v in gbm_metrics.items():
-        lines.append(f"{k}: {v}")
-    lines.append("")
-    lines.append("Predictors included:")
-    for p in predictors:
-        lines.append(f"- {p}")
-    lines.append("")
-    lines.append("Notes:")
-    lines.append("- Median price columns were excluded from predictors to avoid target leakage.")
-    lines.append("- Airbnb supply variables are excluded unless INCLUDE_AIRBNB_SUPPLY_FEATURES=True.")
-    lines.append("- With only ZIP-level rows, interpret nonlinear model performance cautiously.")
-
-    write_text(OUTPUT_DIR / "single_model_diagnostics.txt", "\n".join(lines))
-
+    # Plots
     plot_actual_vs_predicted(
-        ols_df[TARGET_COL].values,
-        ols_df["pred_price_ols"].values,
+        ols_df[TARGET_COL].values, ols_df["pred_price_ols"].values,
         "ZIP-only OLS: Actual vs Predicted Median Price",
         OUTPUT_DIR / "single_actual_vs_predicted_ols.png",
     )
-
     plot_actual_vs_predicted(
-        gbm_pred["actual_price"].values,
-        gbm_pred["predicted_price_gbm"].values,
+        ridge_df[TARGET_COL].values, ridge_df["pred_price_ridge"].values,
+        "ZIP-only Ridge: Actual vs Predicted Median Price",
+        OUTPUT_DIR / "single_actual_vs_predicted_ridge.png",
+    )
+    plot_actual_vs_predicted(
+        gbm_df[TARGET_COL].values, gbm_df["pred_price_gbm"].values,
         "ZIP-only GBM: Actual vs Predicted Median Price",
         OUTPUT_DIR / "single_actual_vs_predicted_gbm.png",
     )
+    plot_feature_importance(importance_df, OUTPUT_DIR / "single_gbm_feature_importance.png")
 
-    plot_feature_importance(
-        importance_df,
-        OUTPUT_DIR / "single_gbm_feature_importance.png",
-        top_n=20,
-    )
+    # Diagnostics report
+    lines = [
+        "ZIP-only model diagnostics (cleaned)",
+        "=" * 70,
+        "",
+        "Data diagnostics:",
+        *[f"{k}: {v}" for k, v in diagnostics.items()],
+        "",
+        "OLS formula:",
+        ols_formula,
+        "",
+        "OLS metrics (in-sample, log scale):",
+        *[f"{k}: {v}" for k, v in ols_metrics.items()],
+        "",
+        f"Ridge metrics ({N_SPLITS}-fold CV, log scale):",
+        *[f"{k}: {v}" for k, v in ridge_metrics.items()],
+        "",
+        f"GBM metrics ({N_SPLITS}-fold CV, log scale):",
+        *[f"{k}: {v}" for k, v in gbm_metrics.items()],
+        "",
+        "Predictors included:",
+        *[f"- {p}" for p in predictors],
+        "",
+        "Notes:",
+        "- Median price columns excluded from predictors to avoid target leakage.",
+        "- Airbnb supply variables excluded unless INCLUDE_AIRBNB_SUPPLY_FEATURES=True.",
+        "- Cross-validation uses 5 folds with shuffled splits.",
+        "- For Ridge, the chosen alpha is selected via internal CV across the same folds.",
+    ]
+    write_text(OUTPUT_DIR / "single_model_diagnostics.txt", "\n".join(lines))
 
 
 # ============================================================
@@ -515,37 +472,42 @@ def save_outputs(df, diagnostics, predictors, ols_model, ols_df, ols_formula, gb
 # ============================================================
 
 def main():
-    print("Starting ZIP-only model...")
+    print("Starting cleaned ZIP-only model...")
 
-    df, diagnostics = load_zip_data()
-    predictors = get_predictor_columns(df)
+    df, diagnostics, distance_cols, pca_components = load_zip_data()
+    predictors = get_predictor_columns(df, distance_cols, pca_components)
 
     if not predictors:
         raise ValueError("No usable external predictors were found.")
 
     print(f"Rows: {len(df):,}")
-    print(f"Predictors: {len(predictors)}")
+    print(f"Predictors ({len(predictors)}):")
+    for p in predictors:
+        print(f"  - {p}")
 
     ols_model, ols_df, ols_formula = run_ols(df, predictors)
-    print(f"OLS R^2 on log median price: {ols_model.rsquared:.4f}")
+    print(f"\nOLS R^2 (in-sample, log): {ols_model.rsquared:.4f}")
+    print(f"OLS condition number:     {ols_model.condition_number:.2e}")
 
-    gbm_pipe, gbm_pred, gbm_metrics, importance_df = run_gbm(df, predictors)
-    print(f"GBM test R^2 on log median price: {gbm_metrics['gbm_test_r2_log']:.4f}")
-    print(f"GBM test MAE on price: {gbm_metrics['gbm_test_mae_price']:.2f}")
+    ridge_pipe, ridge_df, ridge_metrics, ridge_coefs = run_ridge_cv(df, predictors)
+    print(f"\nRidge CV R^2 (log):       "
+          f"{ridge_metrics['ridge_cv_r2_log_mean']:.4f} "
+          f"+/- {ridge_metrics['ridge_cv_r2_log_std']:.4f}")
+    print(f"Ridge chosen alpha:       {ridge_metrics['ridge_chosen_alpha']:.4f}")
+
+    gbm_pipe, gbm_df, gbm_metrics, importance_df = run_gbm_cv(df, predictors)
+    print(f"\nGBM CV R^2 (log):         "
+          f"{gbm_metrics['gbm_cv_r2_log_mean']:.4f} "
+          f"+/- {gbm_metrics['gbm_cv_r2_log_std']:.4f}")
 
     save_outputs(
-        df=df,
-        diagnostics=diagnostics,
-        predictors=predictors,
-        ols_model=ols_model,
-        ols_df=ols_df,
-        ols_formula=ols_formula,
-        gbm_pred=gbm_pred,
-        gbm_metrics=gbm_metrics,
-        importance_df=importance_df,
+        df=df, diagnostics=diagnostics, predictors=predictors,
+        ols_model=ols_model, ols_df=ols_df, ols_formula=ols_formula,
+        ridge_df=ridge_df, ridge_metrics=ridge_metrics, ridge_coefs=ridge_coefs,
+        gbm_df=gbm_df, gbm_metrics=gbm_metrics, importance_df=importance_df,
     )
 
-    print(f"Done. Outputs saved in: {OUTPUT_DIR.resolve()}")
+    print(f"\nDone. Outputs in: {OUTPUT_DIR.resolve()}")
 
 
 if __name__ == "__main__":

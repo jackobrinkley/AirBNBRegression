@@ -1,0 +1,91 @@
+.
+├── NewData
+│   ├── CleanedDataJune.csv
+│   ├── CleanedDataJune.xlsx
+│   ├── CleanedDataJuneAdjusted.csv
+│   └── collinearity_outputs
+├── OldData
+│   ├── AirBNB_June.csv
+│   ├── AirBNB_September.csv
+│   ├── Cleaned Data BIDA Project Group 2.xlsx
+│   ├── CleanedData.csv
+│   └── CrimeData.csv
+├── README.md
+├── collinearity_diagnostics.py
+├── collinearity_outputs
+│   ├── collinearity_report.txt
+│   ├── correlation_matrix.csv
+│   ├── high_correlations.csv
+│   └── vif_table.csv
+├── model_outputs
+│   ├── actual_vs_predicted_price.png
+│   ├── crime_zip_aggregates_and_features.csv
+│   ├── interpretation_notes.txt
+│   ├── merged_airbnb_zip_dataset.csv
+│   ├── model_predictions.csv
+│   ├── regression_coefficients.csv
+│   ├── regression_summary.txt
+│   ├── trend_Crime_Per_Capita.png
+│   ├── trend_Education_Per_Capita.png
+│   ├── trend_Public_Safety_Per_Capita.png
+│   ├── trend_amenities_index.png
+│   ├── trend_crime_events_per_capita.png
+│   ├── trend_crime_index.png
+│   ├── trend_education_index.png
+│   ├── trend_property_crime_per_capita.png
+│   └── trend_violent_crime_per_capita.png
+├── model_outputs_single
+│   ├── single_actual_vs_predicted_gbm.png
+│   ├── single_actual_vs_predicted_ols.png
+│   ├── single_gbm_feature_importance.csv
+│   ├── single_gbm_feature_importance.png
+│   ├── single_gbm_test_predictions.csv
+│   ├── single_model_dataset.csv
+│   ├── single_model_diagnostics.txt
+│   ├── single_ols_coefficients.csv
+│   ├── single_ols_predictions.csv
+│   └── single_ols_summary.txt
+├── model_outputs_v2
+│   ├── actual_vs_predicted_price_v2.png
+│   ├── crime_zip_aggregates_and_features_v2.csv
+│   ├── diagnostics_report_v2.txt
+│   ├── interpretation_notes_v2.txt
+│   ├── merged_airbnb_zip_dataset_v2.csv
+│   ├── model_predictions_v2.csv
+│   ├── regression_coefficients_v2.csv
+│   ├── regression_summary_v2.txt
+│   ├── trend_Education_Per_Capita_v2.png
+│   ├── trend_Public_Safety_Per_Capita_v2.png
+│   ├── trend_amenities_index_v2.png
+│   └── trend_crime_events_per_capita_v2.png
+├── model_outputs_v3
+│   ├── actual_vs_predicted_gbm_v3.png
+│   ├── actual_vs_predicted_ols_v3.png
+│   ├── crime_zip_aggregates_and_features_v3.csv
+│   ├── diagnostics_report_v3.txt
+│   ├── gbm_feature_importance_v3.csv
+│   ├── gbm_test_predictions_v3.csv
+│   ├── merged_airbnb_zip_dataset_v3.csv
+│   ├── ols_coefficients_v3.csv
+│   ├── ols_predictions_v3.csv
+│   └── ols_summary_v3.txt
+├── model_outputs_zip_only
+│   ├── zip_actual_vs_predicted_gbm.png
+│   ├── zip_actual_vs_predicted_ols.png
+│   ├── zip_gbm_feature_importance.csv
+│   ├── zip_gbm_feature_importance.png
+│   ├── zip_gbm_test_predictions.csv
+│   ├── zip_model_dataset.csv
+│   ├── zip_model_diagnostics.txt
+│   ├── zip_ols_coefficients.csv
+│   ├── zip_ols_predictions.csv
+│   └── zip_ols_summary.txt
+├── regression.py
+├── regression2.py
+├── regression3.py
+├── regression_single.py
+├── regression_triple.py
+├── requirements.txt
+└── tree.txt
+
+10 directories, 79 files

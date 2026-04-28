@@ -1,0 +1,67 @@
+ZIP-only model diagnostics (cleaned)
+======================================================================
+
+Data diagnostics:
+raw_rows: 244
+rows_after_target_cleanup: 214
+unique_zips: 214
+target: Median_Price_June
+distance_columns_found: 17
+landmark_strategy: all_distances
+fire_police_warning: Count_Fire_Stations and Count_Police_Stations are IDENTICAL columns. This is almost certainly a data error upstream. Dropping Count_Police_Stations.
+
+OLS formula:
+log_median_price_june ~ log_population + log_part_1_crime_count + crime_per_10k + Count_Educational_Facility + Count_Public_Safety + Count_Fire_Stations + Count_Corrective_Facility + LAX_Median_Distance_June_(KM) + Hollywood_Walk_of_Fame_Median_Distance_June_(KM) + Griffith_Park_Median_Distance_June_(KM) + Walt_Disney_Concert_Hall_Median_Distance_June_(KM) + TCL_Chinese_Theater_Median_Distance_June_(KM) + Madame_Tussauds_Median_Distance_June_(KM) + Venice_Beach_Median_Distance_June_(KM) + Crypto_Arena_Median_Distance_June_(KM) + California_Science_Center_Median_Distance_June_(KM) + Hollywood_Sign_Median_Distance_June_(KM) + La_Brea_Median_Distance_June_(KM) + Getty_Center_Median_Distance_June_(KM) + Griffith_Observatory_Median_Distance_June_(KM) + Universal_Studios_Hollywood_Median_Distance_June_(KM) + Aquarium_of_the_Pacific_Median_Distance_June_(KM) + Santa_Monica_Pier_Median_Distance_June_(KM) + Queen_Mary_Median_Distance_June_(KM)
+
+OLS metrics (in-sample, log scale):
+ols_r2_log: 0.5050570713717996
+ols_mae_price: 36.2341651361157
+ols_rmse_price: 59.44641960703519
+ols_rows: 214
+
+Ridge metrics (5-fold CV, log scale):
+ridge_cv_r2_log_mean: 0.23597229460885324
+ridge_cv_r2_log_std: 0.11499061297277763
+ridge_chosen_alpha: 10.0
+ridge_full_fit_r2_log: 0.40678433484693766
+ridge_full_fit_mae_price: 38.189035313469475
+ridge_full_fit_rmse_price: 70.12515762650986
+
+GBM metrics (5-fold CV, log scale):
+gbm_cv_r2_log_mean: 0.22784390655519057
+gbm_cv_r2_log_std: 0.11214721907419811
+gbm_full_fit_r2_log: 0.9705261487774787
+gbm_full_fit_mae_price: 8.648307934114408
+gbm_full_fit_rmse_price: 20.19424934442698
+
+Predictors included:
+- log_population
+- log_part_1_crime_count
+- crime_per_10k
+- Count_Educational_Facility
+- Count_Public_Safety
+- Count_Fire_Stations
+- Count_Corrective_Facility
+- LAX_Median_Distance_June_(KM)
+- Hollywood_Walk_of_Fame_Median_Distance_June_(KM)
+- Griffith_Park_Median_Distance_June_(KM)
+- Walt_Disney_Concert_Hall_Median_Distance_June_(KM)
+- TCL_Chinese_Theater_Median_Distance_June_(KM)
+- Madame_Tussauds_Median_Distance_June_(KM)
+- Venice_Beach_Median_Distance_June_(KM)
+- Crypto_Arena_Median_Distance_June_(KM)
+- California_Science_Center_Median_Distance_June_(KM)
+- Hollywood_Sign_Median_Distance_June_(KM)
+- La_Brea_Median_Distance_June_(KM)
+- Getty_Center_Median_Distance_June_(KM)
+- Griffith_Observatory_Median_Distance_June_(KM)
+- Universal_Studios_Hollywood_Median_Distance_June_(KM)
+- Aquarium_of_the_Pacific_Median_Distance_June_(KM)
+- Santa_Monica_Pier_Median_Distance_June_(KM)
+- Queen_Mary_Median_Distance_June_(KM)
+
+Notes:
+- Median price columns excluded from predictors to avoid target leakage.
+- Airbnb supply variables excluded unless INCLUDE_AIRBNB_SUPPLY_FEATURES=True.
+- Cross-validation uses 5 folds with shuffled splits.
+- For Ridge, the chosen alpha is selected via internal CV across the same folds.
